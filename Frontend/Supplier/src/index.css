@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Poppins:wght@500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Poppins', 'sans-serif';
+}
+
+/* @layer components {
+    .socialIcon {
+        @apply w-11 border-[1px] border-blue-400 border-solid h-11 rounded-full px-2 py-1 text-pink-500 hover:text-blue-400 cursor-pointer transition duration-200 hover:animate-pulse;
+    }
+} */
+/* Custom class to hide the scrollbar */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+/* Ensure the body or container can scroll without affecting the navbar */
+body {
+  overflow-y: scroll;
+}
+
+/* Fix the Navbar */
+.navbar-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+}
+
+/* Make the right side (order summary) sticky */
+.sticky-summary {
+  position: sticky;
+  top: 20px;
+  /* Adjust according to how far you want it from the top */
+}
