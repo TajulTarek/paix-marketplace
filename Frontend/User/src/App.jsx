@@ -1,19 +1,19 @@
 import React from 'react'
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, BrowserRouter } from 'react-router-dom';
 import Home from './Home';
 import ShoppingCart from './ShoppingCart';
 import Product from './Product';
-
+import Login from './Login';
+  
 function App() {
   return (
     <>
-      <Router>
+      <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/cart" element={<ShoppingCart />} />
-          <Route path="/product" element={<Product />} />
+          <Route path="/login" element={<Login />} > </Route>
+          <Route path="/home" element={<Home />}> </Route>
         </Routes>
-      </Router>
+      </BrowserRouter>
     </>
     
   )
