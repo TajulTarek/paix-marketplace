@@ -76,7 +76,7 @@ const Navbar = ({ onAboutUsClick }) => {
                                     <a href='/aboutus'> About us</a>
                                 </li>
                                 <li>
-                                    <a>Jobs</a>
+                                    <a href='/myproducts'> My Products</a>
                                 </li>
                             </ul>
                         </div>
@@ -117,18 +117,18 @@ const Navbar = ({ onAboutUsClick }) => {
                             </label>
                         </div>
                         <div className="">
-                            <a className="bg-black px-3 py-2 text-white cursor-pointer rounded-md hover:bg-slate-800">Login</a>
+                            <a className="bg-black px-3 py-2 text-white cursor-pointer rounded-md hover:bg-slate-800" href='/login'>Login</a>
                         </div>
 
                         {/* Check Balance Section */}
-                        <div>
+                        {/* <div>
                             <button
                                 onClick={handleCheckBalance}
                                 className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-500 w-32"
                             >
                                 {balanceText}
                             </button>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>
