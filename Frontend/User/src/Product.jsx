@@ -1,21 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Product = () => {
-    const [selectedImage, setSelectedImage] = useState('images/image-product-1.jpg');
+    const [product, setProduct] = useState(null);
+    const [selectedImage, setSelectedImage] = useState('');
     const [quantity, setQuantity] = useState(1);
+    const [showFullDescription, setShowFullDescription] = useState(false);
 
-    const product = {
-        name: 'Greeny Wooden Arm Chair',
-        supplier: 'Furniture Co.',
-        description: ' Accent Chair Living Room Armchair Tub Side Chair Sofa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home Furniture Accent Chair Living Room Armchair Tub Side Chair SoAccent Chair Living Room Armchair Tub Side Chair Sofa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home FurnitureAccent Chair Living Room Armchair Tub Side Chair Sofa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home FurnitureAccent Chair Living Room Armchair Tub Side Chair Sofa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home FurnitureAccent Chair Living Room Armchair Tub Side Chair Sofa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home FurnitureAccent Chair Living Room Armchair Tub Side Chair Sofa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home Furniturefa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home Furniture',
-        price: 399,
-        originalPrice: 465,
-        images: [
-            'images/image-product-1.jpg',
-            'images/image-product-2.jpg',
-        ],
-    };
+    useEffect(() => {
+        const fetchProductData = async () => {
+            try {
+                const response = await fetch('http://localhost:8000/product');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.products && data.products.length > 0) {
+                        const productData = data.products[0]; // Assuming you want the first product
+                        setProduct(productData);
+                        setSelectedImage(productData.image); // Set the product image as the default selected image
+                    } else {
+                        toast.error('No products found.');
+                    }
+                } else {
+                    console.error('Failed to fetch product data:', response.statusText);
+                    toast.error('Failed to fetch product data.');
+                }
+            } catch (error) {
+                console.error('Error fetching product data:', error);
+                toast.error('Error fetching product data.');
+            }
+        };
+
+        fetchProductData();
+    }, []);
 
     const handleImageChange = (newImageUrl) => {
         setSelectedImage(newImageUrl);
@@ -28,14 +46,54 @@ const Product = () => {
     const handleDecrease = () => {
         if (quantity > 0) setQuantity((prevQuantity) => prevQuantity - 1);
     };
-    const [showFullDescription, setShowFullDescription] = useState(false);
 
     const toggleDescription = () => {
         setShowFullDescription(!showFullDescription);
     };
-    
+
+    const handleAddToCart = async () => {
+        if (!product) return;
+
+        const cartItem = {
+            name: product.name,
+            description: product.description,
+            supplier_id: product.supplier_id,
+            supplier_name: product.supplier_name,
+            price: product.price,
+            originalPrice: product.originalPrice,
+            image: selectedImage
+        };
+
+        try {
+            const response = await fetch('http://localhost:8000/product/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(cartItem),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                toast.success('Product added to cart successfully!');
+                console.log('Product added to cart:', data);
+            } else {
+                console.error('Failed to add product to cart:', response.statusText);
+                toast.error('Failed to add product to cart.');
+            }
+        } catch (error) {
+            console.error('Error adding product to cart:', error);
+            toast.error('Error adding product to cart.');
+        }
+    };
+
+    if (!product) {
+        return <div>Loading...</div>;
+    }
+
     return (
         <>
+            <ToastContainer />
             <div className="flex flex-col min-h-screen bg-gray-50">
                 <Navbar />
                 <div className="flex flex-grow flex-col md:flex-row p-5 md:p-10">
@@ -50,26 +108,23 @@ const Product = () => {
                         </div>
                         {/* Image Thumbnails */}
                         <div className="mt-5 flex space-x-3">
-                            {product.images.map((image, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => handleImageChange(image)}
-                                    className="w-20 h-20 bg-gray-200 rounded-md overflow-hidden border hover:border-indigo-500"
-                                >
-                                    <img
-                                        src={image}
-                                        alt={`Thumbnail ${index + 1}`}
-                                        className="object-cover w-full h-full"
-                                    />
-                                </button>
-                            ))}
+                            <button
+                                onClick={() => handleImageChange(product.image)}
+                                className="w-20 h-20 bg-gray-200 rounded-md overflow-hidden border hover:border-indigo-500"
+                            >
+                                <img
+                                    src={product.image}
+                                    alt="Thumbnail"
+                                    className="object-cover w-full h-full"
+                                />
+                            </button>
                         </div>
                     </div>
 
                     {/* Right Section - Product Details */}
                     <div className="w-full md:w-1/2 p-5 bg-white rounded-md shadow-lg md:pt-16">
                         <h1 className="text-3xl font-bold mb-2 text-gray-800">{product.name}</h1>
-                        <p className="text-sm text-gray-500 mb-4">Supplier: {product.supplier}</p>
+                        <p className="text-sm text-gray-500 mb-4">Supplier: {product.supplier_name}</p>
                         <h2 className="text-lg font-semibold text-gray-700 mb-2">Description</h2>
                         <div className={`text-gray-600 mb-4 ${showFullDescription ? '' : 'max-h-20 overflow-hidden relative'}`}>
                             <p>{product.description}</p>
@@ -83,7 +138,7 @@ const Product = () => {
                         >
                             {showFullDescription ? 'See Less' : 'See More'}
                         </button>
-                        
+
                         <p className="text-2xl font-bold text-indigo-600 mb-4">
                             Tk {product.price}{' '}
                             <span className="text-gray-400 line-through text-lg">Tk {product.originalPrice}</span>
@@ -107,7 +162,10 @@ const Product = () => {
                                     +
                                 </button>
                             </div>
-                            <button className="bg-indigo-600 text-white rounded-md py-2 px-6 font-semibold hover:bg-indigo-500">
+                            <button
+                                onClick={handleAddToCart}
+                                className="bg-indigo-600 text-white rounded-md py-2 px-6 font-semibold hover:bg-indigo-500"
+                            >
                                 Add to Cart
                             </button>
                         </div>

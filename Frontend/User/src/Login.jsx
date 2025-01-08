@@ -1,26 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import loginBg from './assets/loginbg.jpg';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Login() {
-
     const [isSignUp, setIsSignUp] = useState(false);
-
-    const toggleForm = () => {
-        setIsSignUp(!isSignUp);
-    };
-
     const navigate = useNavigate();
 
+    const toggleForm = () => {
+        navigate('/register');
+    };
+
     function routetohome() {
-        navigate("/home");
+        navigate("/");
     }
+
     const [SignUpData, setSignUpData] = useState({
         name: "",
         email: "",
-        password:"",
+        password: "",
     });
 
     const handleSubmit = async (e) => {
@@ -34,19 +35,22 @@ function Login() {
                     },
                     body: JSON.stringify(SignUpData),
                 });
+                toast.success('Sign up successful!');
                 routetohome();
             } catch (error) {
+                toast.error("Error during signup");
                 console.log("Error during signup:", error);
             }
         } else {
             try {
-                const { data } = await axios.post('http://localhost:3097/auth/login', {
-                    email: SignUpData.email,  // Corrected to use SignUpData
-                    password: SignUpData.password,  // Corrected to use SignUpData
+                const { data } = await axios.post('http://localhost:8000/auth/login', {
+                    email: SignUpData.email,
+                    password: SignUpData.password,
                 });
-                console.log(data);
+                toast.success('Login successful!');
                 routetohome();
             } catch (error) {
+                toast.error("Login failed. Please check your credentials.");
                 console.log("Error during login:", error);
             }
         }
@@ -59,15 +63,9 @@ function Login() {
         });
     };
 
-
-
-
-
-    
-
-    
     return (
         <>
+            <ToastContainer />
             <div
                 className="relative min-h-screen bg-cover bg-center"
                 style={{ backgroundImage: `url(${loginBg})` }}
@@ -88,9 +86,7 @@ function Login() {
                             </div>
 
                             <div className="mt-6">
-                                <form onSubmit={handleSubmit}  className="space-y-6">
-                                    
-
+                                <form onSubmit={handleSubmit} className="space-y-6">
                                     {isSignUp && (
                                         <div>
                                             <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">
@@ -163,44 +159,6 @@ function Login() {
                                         </button>
                                     </div>
                                 </form>
-
-                                { (
-                                    <>
-                                        <div className="relative mt-4">
-                                            <div className="absolute inset-0 flex items-center">
-                                                <div className="w-full border-t border-gray-300"></div>
-                                            </div>
-                                            <div className="relative flex justify-center text-sm">
-                                                <span className="bg-white px-2 text-gray-500">Or continue with</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-6 flex justify-center space-x-4">
-                                            <button
-                                                type="button"
-                                                className="flex items-center justify-center w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                            >
-                                                <img
-                                                    src="https://image.similarpng.com/very-thumbnail/2020/06/Logo-google-icon-PNG.png"
-                                                    alt="Google"
-                                                    className="h-5 w-5 mr-2"
-                                                />
-                                                Google
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="flex items-center justify-center w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                            >
-                                                <img
-                                                    src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
-                                                    alt="Facebook"
-                                                    className="h-5 w-5 mr-2"
-                                                />
-                                                Facebook
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
 
                                 <div className="mt-6 text-center">
                                     {isSignUp ? (
