@@ -7,21 +7,13 @@ const Product = () => {
 
     const product = {
         name: 'Greeny Wooden Arm Chair',
-        description: 'Accent Chair Living Room Armchair Tub Side Chair Sofa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home Furniture',
+        supplier: 'Furniture Co.',
+        description: ' Accent Chair Living Room Armchair Tub Side Chair Sofa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home Furniture Accent Chair Living Room Armchair Tub Side Chair SoAccent Chair Living Room Armchair Tub Side Chair Sofa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home FurnitureAccent Chair Living Room Armchair Tub Side Chair Sofa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home FurnitureAccent Chair Living Room Armchair Tub Side Chair Sofa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home FurnitureAccent Chair Living Room Armchair Tub Side Chair Sofa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home FurnitureAccent Chair Living Room Armchair Tub Side Chair Sofa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home Furniturefa Lounge Soft Velvet Upholstered Back for Dining Room/Cafe Home Furniture',
         price: 399,
         originalPrice: 465,
-        reviews: [
-            { name: 'John Doe', rating: 4.5, comment: 'Very comfortable ' },
-            { name: 'Jane Smith', rating: 5, comment: 'Looks amazing in my living room.' },
-            { name: 'John Doe', rating: 4.5, comment: 'Very comfortable ' },
-            { name: 'Jane Smith', rating: 5, comment: 'Looks amazing in my living room.' },
-            { name: 'John Doe', rating: 4.5, comment: 'Very comfortable ' },
-            { name: 'Jane Smith', rating: 5, comment: 'Looks amazing in my living room.' },
-            { name: 'John Doe', rating: 4.5, comment: 'Very comfortable ' },
-            { name: 'Jane Smith', rating: 5, comment: 'Looks amazing in my living room.' },
-            { name: 'John Doe', rating: 4.5, comment: 'Very comfortable ' },
-            { name: 'Jane Smith', rating: 5, comment: 'Looks amazing in my living room.' }
-            // Add more reviews...
+        images: [
+            'images/image-product-1.jpg',
+            'images/image-product-2.jpg',
         ],
     };
 
@@ -30,105 +22,94 @@ const Product = () => {
     };
 
     const handleIncrease = () => {
-        if (quantity < 10) setQuantity(prevQuantity => prevQuantity + 1);
+        if (quantity < 10) setQuantity((prevQuantity) => prevQuantity + 1);
     };
 
     const handleDecrease = () => {
-        if (quantity > 0) setQuantity(prevQuantity => prevQuantity - 1);
+        if (quantity > 0) setQuantity((prevQuantity) => prevQuantity - 1);
     };
+    const [showFullDescription, setShowFullDescription] = useState(false);
 
+    const toggleDescription = () => {
+        setShowFullDescription(!showFullDescription);
+    };
+    
     return (
         <>
-            <div className="flex flex-col navbar-fixed">
+            <div className="flex flex-col min-h-screen bg-gray-50">
                 <Navbar />
-                <div className="flex flex-grow ">
+                <div className="flex flex-grow flex-col md:flex-row p-5 md:p-10">
                     {/* Left Section - Image */}
-                    <div className="w-1/2 p-5 ">
-                        {/* Fixed height container */}
-                        <div className="w-full h-96 bg-gray-100 flex items-center justify-center ">
+                    <div className="w-full md:w-1/2 p-5 md:pt-24">
+                        <div className="w-full h-96 bg-gray-100 flex items-center justify-center rounded-md shadow-sm">
                             <img
                                 src={selectedImage}
                                 alt={product.name}
-                                className="object-contain w-full h-full"
+                                className="object-contain w-full h-full rounded-md"
                             />
                         </div>
-                        {/* Image Selection */}
+                        {/* Image Thumbnails */}
                         <div className="mt-5 flex space-x-3">
-                            <button
-                                onClick={() => handleImageChange('images/image-product-1.jpg')}
-                                className="w-20 h-20 bg-gray-200"
-                            >
-                                <img
-                                    src="images/image-product-1.jpg"
-                                    alt="Thumbnail 1"
-                                    className="object-cover w-full h-full"
-                                />
-                            </button>
-                            <button
-                                onClick={() => handleImageChange('images/image-product-2.jpg')}
-                                className="w-20 h-20 bg-gray-200"
-                            >
-                                <img
-                                    src="images/image-product-2.jpg"
-                                    alt="Thumbnail 2"
-                                    className="object-cover w-full h-full"
-                                />
-                            </button>
+                            {product.images.map((image, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => handleImageChange(image)}
+                                    className="w-20 h-20 bg-gray-200 rounded-md overflow-hidden border hover:border-indigo-500"
+                                >
+                                    <img
+                                        src={image}
+                                        alt={`Thumbnail ${index + 1}`}
+                                        className="object-cover w-full h-full"
+                                    />
+                                </button>
+                            ))}
                         </div>
                     </div>
 
                     {/* Right Section - Product Details */}
-                    <div className="w-1/2 p-5 h-screen overflow-y-auto scrollbar-hide">
-                        <h1 className="text-4xl font-bold mb-8">{product.name}</h1>
-                        <h2 className="text-slate-600 text-sm font-semibold mb-1">Description</h2>
-                        <p className="text-base mb-8">{product.description}</p>
-
-                        <p className="text-2xl font-semibold">
-                            Tk:{product.price}{' '}
-                            <span className="text-gray-400 line-through">Tk{product.originalPrice}</span>
+                    <div className="w-full md:w-1/2 p-5 bg-white rounded-md shadow-lg md:pt-16">
+                        <h1 className="text-3xl font-bold mb-2 text-gray-800">{product.name}</h1>
+                        <p className="text-sm text-gray-500 mb-4">Supplier: {product.supplier}</p>
+                        <h2 className="text-lg font-semibold text-gray-700 mb-2">Description</h2>
+                        <div className={`text-gray-600 mb-4 ${showFullDescription ? '' : 'max-h-20 overflow-hidden relative'}`}>
+                            <p>{product.description}</p>
+                            {!showFullDescription && (
+                                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
+                            )}
+                        </div>
+                        <button
+                            onClick={toggleDescription}
+                            className="text-gray-600 hover:underline"
+                        >
+                            {showFullDescription ? 'See Less' : 'See More'}
+                        </button>
+                        
+                        <p className="text-2xl font-bold text-indigo-600 mb-4">
+                            Tk {product.price}{' '}
+                            <span className="text-gray-400 line-through text-lg">Tk {product.originalPrice}</span>
                         </p>
 
-                        {/* Quantity Selection */}
-                        <div className='flex flex-row space-x-10'>
-                            <div className="flex items-center mt-5 space-x-4">
-                                <label className="mr-2">Quantity:</label>
-
+                        <div className="flex items-center space-x-6 mb-6">
+                            <div className="flex items-center space-x-3">
                                 <button
                                     onClick={handleDecrease}
-                                    className="px-4 py-2 bg-gray-200 rounded-md text-lg font-bold text-gray-600"
+                                    className={`px-4 py-2 bg-gray-200 rounded-md text-lg font-bold text-gray-600 hover:bg-gray-300 ${quantity === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     disabled={quantity === 0}
                                 >
                                     -
                                 </button>
-
                                 <div className="text-lg font-semibold">{quantity}</div>
-
                                 <button
                                     onClick={handleIncrease}
-                                    className="px-4 py-2 bg-gray-200 rounded-md text-lg font-bold text-gray-600"
+                                    className={`px-4 py-2 bg-gray-200 rounded-md text-lg font-bold text-gray-600 hover:bg-gray-300 ${quantity === 10 ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     disabled={quantity === 10}
                                 >
                                     +
                                 </button>
                             </div>
-
-                            <button className="bg-indigo-600 text-white rounded-md py-2 px-5 mt-5 hover:bg-indigo-500">
+                            <button className="bg-indigo-600 text-white rounded-md py-2 px-6 font-semibold hover:bg-indigo-500">
                                 Add to Cart
                             </button>
-                        </div>
-
-                        {/* Reviews Section */}
-                        <div className="mt-10">
-                            <h3 className="text-xl font-bold mb-3">Reviews</h3>
-                            <div className="space-y-3">
-                                {product.reviews.map((review, index) => (
-                                    <div key={index} className="border-b pb-2">
-                                        <h4 className="font-semibold">{review.name}</h4>
-                                        <p className="text-yellow-500">{review.rating}★</p>
-                                        <p>{review.comment}</p>
-                                    </div>
-                                ))}
-                            </div>
                         </div>
                     </div>
                 </div>
