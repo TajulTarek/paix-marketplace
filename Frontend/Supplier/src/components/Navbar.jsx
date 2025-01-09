@@ -1,22 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const Navbar = ({ onAboutUsClick }) => {
-    const [balanceText, setBalanceText] = useState('Balance');
-    const [showingBalance, setShowingBalance] = useState(false);
-
-    const handleCheckBalance = () => {
-        if (!showingBalance) {
-            // Simulate fetching balance (replace this with actual balance fetching logic)
-            setBalanceText('$2,350.00');
-            setShowingBalance(true);
-
-            // After 5 seconds, revert back to "Check Balance"
-            setTimeout(() => {
-                setBalanceText('Balance');
-                setShowingBalance(false);
-            }, 5000);
-        }
-    };
+    
 
     const navItems = (
         <>
@@ -24,14 +9,9 @@ const Navbar = ({ onAboutUsClick }) => {
                 <a>Home</a>
             </li>
             <li>
-                <a>Cart</a>
+                <a>Orders</a>
             </li>
-            <li>
-                <a>About us</a>
-            </li>
-            <li>
-                <a>Jobs</a>
-            </li>
+            
         </>
     );
 
@@ -70,10 +50,7 @@ const Navbar = ({ onAboutUsClick }) => {
                                     <a href='/'>Home</a>
                                 </li>
                                 <li>
-                                    <a href='/cart'>Cart</a>
-                                </li>
-                                <li>
-                                    <a href='/aboutus'> About us</a>
+                                    <a href='/orders'>Orders</a>
                                 </li>
                                
                             </ul>

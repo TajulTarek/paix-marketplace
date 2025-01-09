@@ -33,7 +33,8 @@ const Orders = () => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
-    const [viewProductsOrder, setViewProductsOrder] = useState(null);
+    const [transactionId, setTransactionId] = useState('');
+    const [secretKey, setSecretKey] = useState('');
 
     const handleRequestMoney = (order) => {
         setSelectedOrder(order);
@@ -42,11 +43,14 @@ const Orders = () => {
 
     const handleAcceptProduct = () => {
         console.log(`Requesting money for order ${selectedOrder.id}`);
+        console.log(`Transaction ID: ${transactionId}, Secret Key: ${secretKey}`);
         setIsModalOpen(false);
     };
 
-    const handleViewProducts = (order) => {
-        setViewProductsOrder(viewProductsOrder === order.id ? null : order.id); // Toggle view
+    const handleSummaryClick = (orderId) => {
+        // This function should handle opening of the PDF summary.
+        console.log(`Opening PDF summary for order ${orderId}`);
+        window.open(`/path/to/pdf/order-summary-${orderId}.pdf`, '_blank');
     };
 
     return (
@@ -57,7 +61,7 @@ const Orders = () => {
 
                 <div className="flex justify-between items-center mb-6">
                     <a
-                        href="/dashboard"
+                        href="/"
                         className="bg-green-500 text-white px-5 py-2 rounded-lg shadow hover:bg-green-600 transition"
                     >
                         Go to Products
@@ -70,7 +74,7 @@ const Orders = () => {
                         <thead className="bg-gray-100">
                             <tr>
                                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">OrderId</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Products</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Summary</th>
                                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
                                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Amount</th>
                                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
@@ -78,58 +82,42 @@ const Orders = () => {
                         </thead>
                         <tbody>
                             {orders.map((order) => (
-                                <React.Fragment key={order.id}>
-                                    <tr className="border-b">
-                                        <td className="px-6 py-4 text-gray-800">
-                                            Order {order.id}
-                                            
-                                        </td>
-                                        <td>
+                                <tr key={order.id} className="border-b">
+                                    <td className="px-6 py-4 text-gray-800">
+                                        Order {order.id}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <button
+                                            onClick={() => handleSummaryClick(order.id)}
+                                            className="text-blue-500 underline hover:text-blue-700"
+                                        >
+                                            View Summary
+                                        </button>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span
+                                            className={`px-3 py-1 rounded-full text-sm font-medium ${order.status === 'Pending'
+                                                ? 'bg-yellow-100 text-yellow-700'
+                                                : order.status === 'Running'
+                                                    ? 'bg-blue-100 text-blue-700'
+                                                    : 'bg-green-100 text-green-700'
+                                                }`}
+                                        >
+                                            {order.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-gray-800">${order.amount}</td>
+                                    <td className="px-6 py-4">
+                                        {order.status === 'Pending' && (
                                             <button
-                                                onClick={() => handleViewProducts(order)}
-                                                className="ml-4 text-blue-500 underline hover:text-blue-700"
+                                                onClick={() => handleRequestMoney(order)}
+                                                className="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow hover:bg-yellow-600 transition"
                                             >
-                                                {viewProductsOrder === order.id ? 'Hide Products' : 'View Products'}
+                                                Request Money
                                             </button>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span
-                                                className={`px-3 py-1 rounded-full text-sm font-medium ${order.status === 'Pending'
-                                                    ? 'bg-yellow-100 text-yellow-700'
-                                                    : order.status === 'Running'
-                                                        ? 'bg-blue-100 text-blue-700'
-                                                        : 'bg-green-100 text-green-700'
-                                                    }`}
-                                            >
-                                                {order.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-800">${order.amount}</td>
-                                        <td className="px-6 py-4">
-                                            {order.status === 'Pending' && (
-                                                <button
-                                                    onClick={() => handleRequestMoney(order)}
-                                                    className="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow hover:bg-yellow-600 transition"
-                                                >
-                                                    Request Money
-                                                </button>
-                                            )}
-                                        </td>
-                                    </tr>
-                                    {viewProductsOrder === order.id && (
-                                        <tr>
-                                            <td colSpan="4" className="px-6 py-4 bg-gray-50">
-                                                <ul>
-                                                    {order.products.map((product, index) => (
-                                                        <li key={index} className="py-2">
-                                                            {product.name} - ${product.price}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </React.Fragment>
+                                        )}
+                                    </td>
+                                </tr>
                             ))}
                         </tbody>
                     </table>
@@ -137,36 +125,50 @@ const Orders = () => {
 
                 {/* Modal */}
                 {isModalOpen && selectedOrder && (
-                    <div className="fixed inset-0 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-                            <h3 className="text-xl font-semibold mb-4">Order Summary</h3>
-                            <p className="mb-4">Order ID: {selectedOrder.id}</p>
-                            <p className="mb-4">Amount: ${selectedOrder.amount}</p>
-                            <p className="mb-4">Products:</p>
-                            <ul className="mb-4">
-                                {selectedOrder.products.map((product, index) => (
-                                    <li key={index} className="py-1">
-                                        {product.name} - ${product.price}
-                                    </li>
-                                ))}
-                            </ul>
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg mr-2 hover:bg-gray-400 transition"
-                                >
-                                    Close
-                                </button>
-                                <button
-                                    onClick={handleAcceptProduct}
-                                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
-                                >
-                                    Accept
-                                </button>
+                    <>
+                        <div className="fixed inset-0 bg-black opacity-50" onClick={() => setIsModalOpen(false)}></div>
+                        <div className="fixed inset-0 flex items-center justify-center z-50">
+                            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full z-60"> {/* Setting a higher z-index */}
+                                <h3 className="text-xl font-semibold mb-4">Order Summary</h3>
+                                <p className="mb-4">Order ID: {selectedOrder.id}</p>
+                                <p className="mb-4">Amount: ${selectedOrder.amount}</p>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Transaction ID</label>
+                                    <input
+                                        type="text"
+                                        value={transactionId}
+                                        onChange={(e) => setTransactionId(e.target.value)}
+                                        className="w-full border border-gray-300 rounded px-3 py-2"
+                                        placeholder="Enter transaction ID"
+                                    />
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Secret Key</label>
+                                    <input
+                                        type="password"
+                                        value={secretKey}
+                                        onChange={(e) => setSecretKey(e.target.value)}
+                                        className="w-full border border-gray-300 rounded px-3 py-2"
+                                        placeholder="Enter secret key"
+                                    />
+                                </div>
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={() => setIsModalOpen(false)}
+                                        className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg mr-2 hover:bg-gray-400 transition"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleAcceptProduct}
+                                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+                                    >
+                                        Request
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <div className="fixed inset-0 bg-black opacity-0" onClick={() => setIsModalOpen(false)}></div>
-                    </div>
+                    </>
                 )}
             </div>
         </>

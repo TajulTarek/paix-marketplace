@@ -1,34 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 function Productlist() {
-    const products = [
-        {
-            id: 1,
-            title: 'Shoes!',
-            description: 'If a dog chews shoes whose shoes does he choose?',
-            imageUrl: 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp',
-            badges: ['Fashion', 'Products'],
-            isNew: true
-        },
-        {
-            id: 2,
-            title: 'Burger',
-            description: 'Delicious burger with fresh ingredients.',
-            imageUrl: 'https://img.daisyui.com/images/stock/photo-1559703248-dcaaec9fab78.webp',
-            badges: ['Food', 'Fast Food'],
-            isNew: false
-        },
-        {
-            id: 3,
-            title: 'Burger Deluxe',
-            description: 'A deluxe burger packed with flavor.',
-            imageUrl: 'https://img.daisyui.com/images/stock/photo-1565098772267-60af42b81ef2.webp',
-            badges: ['Food', 'Premium'],
-            isNew: false
-        },
-        // Add more products...
-    ];
+    const [products, setProducts] = useState([]);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch('http://localhost:8000/product');
+                if (response.ok) {
+                    const data = await response.json();
+                    setProducts(data.products);
+                } else {
+                    console.error('Failed to fetch products:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        };
+
+        fetchProducts();
+    }, []);
 
     return (
         <div className='px-20 py-6'>
@@ -43,23 +35,21 @@ function Productlist() {
 
             <div className="carousel w-full space-x-4 h-96">
                 {products.map((product) => (
-                    <Link to='/product' key={product.id} className="card bg-base-100 w-80 h-96 shadow-sm transform transition-transform duration-300 hover:scale-105 mx-2 border border-gray-300">
+                    <Link to={`/product/${product._id}`} key={product._id} className="card bg-base-100 w-80 h-96 shadow-sm transform transition-transform duration-300 hover:scale-105 mx-2 border border-gray-300">
                         <div className="card bg-base-100 w-80 h-96 shadow-sm rounded-none">
                             <figure>
-                                <img src={product.imageUrl} alt={product.title} className="rounded-sm h-48 w-full object-cover" />
+                                <img src={product.image} alt={product.name} className="rounded-sm h-48 w-full object-cover" />
                             </figure>
                             <div className="card-body">
                                 <h2 className="card-title">
-                                    {product.title}
-                                    {product.isNew && <div className="badge badge-secondary">NEW</div>}
+                                    {product.name}
+                                    {/* Assuming you want to mark new products, you can add logic here if needed */}
                                 </h2>
                                 <p>{product.description}</p>
                                 <div className="card-actions justify-end">
-                                    {product.badges.map((badge, badgeIndex) => (
-                                        <div key={badgeIndex} className="badge badge-outline">
-                                            {badge}
-                                        </div>
-                                    ))}
+                                    {/* Assuming badges are not part of the API response, you can add static or dynamic badges here */}
+                                    <div className="badge badge-outline">Fashion</div>
+                                    <div className="badge badge-outline">Products</div>
                                 </div>
                             </div>
                         </div>

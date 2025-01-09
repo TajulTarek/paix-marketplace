@@ -45,3 +45,8 @@ body {
   top: 20px;
   /* Adjust according to how far you want it from the top */
 }
+
+td:hover .edit-button {
+  display: inline-block;
+  /* Show the button on hover */
+}

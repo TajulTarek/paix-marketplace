@@ -7,11 +7,11 @@ export default function App() {
     <>
       <BrowserRouter>
         <Routes>
+          
           {/* <Route path="/login" element={<Login />} > </Route> */}
           <Route path="/" element={<SupplierDashboard />}> </Route>
           <Route path="/orders" element={<Orders />}></Route>
-          
-          
+
         </Routes>
       </BrowserRouter>
     </>

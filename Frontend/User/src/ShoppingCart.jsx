@@ -1,90 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Navbar from './components/Navbar';
 
 const ShoppingCart = () => {
-    const [cartItems, setCartItems] = useState([{
-        id: 1,
-        name: 'Basic Tee',
-        color: 'Sienna',
-        size: 'Large',
-        price: 32.00,
-        quantity: 1,
-        stockStatus: 'In stock',
-        image: 'https://tailwindui.com/img/ecommerce-images/shopping-cart-page-01-product-01.jpg',
-    },
-    {
-        id: 2,
-        name: 'Basic Tee',
-        color: 'Black',
-        size: 'Large',
-        price: 32.00,
-        quantity: 1,
-        stockStatus: 'Ships in 3–4 weeks',
-        image: 'https://tailwindui.com/img/ecommerce-images/shopping-cart-page-01-product-02.jpg',
-    },
-    {
-        id: 3,
-        name: 'Nomad Tumbler',
-        color: 'White',
-        size: '1',
-        price: 35.00,
-        quantity: 1,
-        stockStatus: 'In stock',
-        image: 'https://tailwindui.com/img/ecommerce-images/shopping-cart-page-01-product-03.jpg',
-    },
-    {
-        id: 3,
-        name: 'Nomad Tumbler',
-        color: 'White',
-        size: '1',
-        price: 35.00,
-        quantity: 1,
-        stockStatus: 'In stock',
-        image: 'https://tailwindui.com/img/ecommerce-images/shopping-cart-page-01-product-03.jpg',
-    },
-    {
-        id: 3,
-        name: 'Nomad Tumbler',
-        color: 'White',
-        size: '1',
-        price: 35.00,
-        quantity: 1,
-        stockStatus: 'In stock',
-        image: 'https://tailwindui.com/img/ecommerce-images/shopping-cart-page-01-product-03.jpg',
-    },
-    {
-        id: 3,
-        name: 'Nomad Tumbler',
-        color: 'White',
-        size: '1',
-        price: 35.00,
-        quantity: 1,
-        stockStatus: 'In stock',
-        image: 'https://tailwindui.com/img/ecommerce-images/shopping-cart-page-01-product-03.jpg',
-    },
-    {
-        id: 3,
-        name: 'Nomad Tumbler',
-        color: 'White',
-        size: '1',
-        price: 35.00,
-        quantity: 1,
-        stockStatus: 'In stock',
-        image: 'https://tailwindui.com/img/ecommerce-images/shopping-cart-page-01-product-03.jpg',
-    }
-    ]);
-
-    const [balance, setBalance] = useState(50.00); // Example balance
+    const [cartItems, setCartItems] = useState([]);
+    const [balance, setBalance] = useState(50.0); // Example balance
     const [showModal, setShowModal] = useState(false);
     const [showWarning, setShowWarning] = useState(false);
-    const [showAddressModal, setShowAddressModal] = useState(false);
     const [addresses, setAddresses] = useState([
-        // Example addresses
         { id: 1, address: '123 Main St, Springfield' },
         { id: 2, address: '456 Elm St, Springfield' }
     ]);
     const [selectedAddressId, setSelectedAddressId] = useState(1);
     const [newAddress, setNewAddress] = useState('');
+    const [showAddressModal, setShowAddressModal] = useState(false);
+    const [secretKey, setSecretKey] = useState('');
+    const [isProcessing, setIsProcessing] = useState(false);
+    const userId = localStorage.getItem("userId");      
+    console.log(userId  )
+    // Fetch cart items from API
+    useEffect(() => {
+        const fetchCartItems = async () => {
+            try {
+                const response = await axios.get(`http://localhost:8000/cart/user/${userId}`);
+                const items = response.data.carts.map(item => ({
+                    id: item._id,
+                    name: item.product_name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    image: 'https://via.placeholder.com/150', // Placeholder image (update if actual images are available)
+                    stockStatus: 'In stock' // Adjust based on your API data
+                }));
+                setCartItems(items);
+            } catch (error) {
+                console.error('Error fetching cart items:', error);
+            }
+        };
+
+        fetchCartItems();
+    }, []);
 
     const handleQuantityChange = (id, newQuantity) => {
         const updatedCartItems = cartItems.map(item =>
@@ -93,34 +47,71 @@ const ShoppingCart = () => {
         setCartItems(updatedCartItems);
     };
 
-    const handleRemoveItem = (id) => {
-        const updatedCartItems = cartItems.filter(item => item.id !== id);
-        setCartItems(updatedCartItems);
+    const handleRemoveItem = async (id) => {
+        try {
+            // Call the API to remove the item
+            const response = await axios.delete(`http://localhost:8000/cart/${id}`);
+
+            if (response.status === 200 || response.data.success) {
+                // Update the cart items in state
+                const updatedCartItems = cartItems.filter(item => item.id !== id);
+                setCartItems(updatedCartItems);
+                alert('Item removed successfully!');
+            } else {
+                alert('Failed to remove the item. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error removing item:', error);
+            alert('An error occurred while removing the item. Please try again.');
+        }
     };
+
 
     const calculateSubtotal = () => {
         return cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2);
     };
 
-    const shippingEstimate = 5.00;
+    const shippingEstimate = 5.0;
     const taxEstimate = 8.32;
     const total = (parseFloat(calculateSubtotal()) + shippingEstimate + taxEstimate).toFixed(2);
 
     const handleCheckout = () => {
-        if (balance < parseFloat(total)) {
-            setShowWarning(true);
-        } else {
-            setShowModal(true);
+        setShowModal(true); // Show the secret key modal first
+    };
+
+    const handleConfirmOrder = async () => {
+        setIsProcessing(true);
+
+        try {
+            // Construct the endpoint dynamically using the secret key and account number
+            const accountNo = localStorage.getItem("accountNo"); // Replace with dynamic value if available
+            console.log(accountNo)
+            const url = `http://localhost:8000/bank/secret/${secretKey}/${accountNo}`;
+
+            // Send a GET request to the server
+            const response = await axios.get(url);
+
+            // Check server response for success
+            if (response.data.success) {
+                setBalance((prev) => prev - parseFloat(total)); // Deduct total from balance
+                setCartItems([]); // Clear cart items
+                alert("Order placed successfully!");
+            } else {
+                alert("Insufficient balance or order cannot be processed.");
+            }
+        } catch (error) {
+            alert("Invalid secret key or an error occurred!");
+        } finally {
+            setIsProcessing(false);
+            setShowModal(false);
+            setSecretKey(""); // Reset secret key input
         }
     };
 
-    const handleConfirmOrder = () => {
-        // Handle the order confirmation logic here
-        setShowModal(false);
-    };
 
     const handleCloseModal = () => {
         setShowModal(false);
+        setSecretKey('');
     };
 
     const handleCloseWarning = () => {
@@ -142,6 +133,7 @@ const ShoppingCart = () => {
     const handleAddAddress = () => {
         if (newAddress.trim()) {
             setAddresses([...addresses, { id: addresses.length + 1, address: newAddress }]);
+            setSelectedAddressId(addresses.length + 1);
             setNewAddress('');
             handleCloseAddressModal();
         }
@@ -171,11 +163,8 @@ const ShoppingCart = () => {
                                         <div className="flex justify-between">
                                             <div>
                                                 <h2 className="text-lg font-semibold">{item.name}</h2>
-                                                <p className="text-gray-500">{item.color}</p>
-                                                <p className="text-gray-500">Size: {item.size}</p>
                                                 <p className="text-gray-900 mt-1">${item.price.toFixed(2)}</p>
                                             </div>
-                                            {/* Remove Button */}
                                             <button
                                                 onClick={() => handleRemoveItem(item.id)}
                                                 className="text-red-500 hover:text-red-700 font-bold text-lg"
@@ -190,17 +179,14 @@ const ShoppingCart = () => {
                                         {/* Quantity Selector */}
                                         <div className="mt-4">
                                             <label className="block text-gray-700">Quantity</label>
-                                            <select
+                                            <input
+                                                type="number"
                                                 value={item.quantity}
-                                                onChange={(e) => handleQuantityChange(item.id, Number(e.target.value))}
+                                                onChange={(e) => handleQuantityChange(item.id, Math.max(1, Number(e.target.value)))}
                                                 className="border rounded-md p-2 w-20"
-                                            >
-                                                {[...Array(10).keys()].map(n => (
-                                                    <option key={n + 1} value={n + 1}>
-                                                        {n + 1}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                                min="1"
+                                                readOnly
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -210,47 +196,40 @@ const ShoppingCart = () => {
                         {/* Order Summary */}
                         <div className="bg-white p-6 rounded-lg shadow sticky-summary">
                             <h2 className="text-lg font-bold mb-6">Order summary</h2>
+
+                            {/* Delivery Address Section */}
+                            <div className="mb-6">
+                                <h3 className="text-md font-semibold mb-2">Delivery Address</h3>
+                                <div className="flex justify-between items-center">
+                                    <p className="text-sm text-gray-600">
+                                        {addresses.find(addr => addr.id === selectedAddressId)?.address}
+                                    </p>
+                                    <button
+                                        onClick={handleAddressChange}
+                                        className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                                    >
+                                        Change
+                                    </button>
+                                </div>
+                            </div>
+
                             <div className="space-y-4">
                                 <div className="flex justify-between text-gray-700">
                                     <span>Subtotal</span>
                                     <span>${calculateSubtotal()}</span>
                                 </div>
                                 <div className="flex justify-between text-gray-700">
-                                    <span>
-                                        Shipping estimate{' '}
-                                        <span className="text-gray-400">
-                                            <button className="cursor-help">?</button>
-                                        </span>
-                                    </span>
+                                    <span>Shipping estimate</span>
                                     <span>${shippingEstimate.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-gray-700">
-                                    <span>
-                                        Tax estimate{' '}
-                                        <span className="text-gray-400">
-                                            <button className="cursor-help">?</button>
-                                        </span>
-                                    </span>
+                                    <span>Tax estimate</span>
                                     <span>${taxEstimate.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-gray-900 font-bold">
                                     <span>Order total</span>
                                     <span>${total}</span>
                                 </div>
-                            </div>
-                            <div className="mt-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-900 font-semibold">Delivery Address</span>
-                                    <button
-                                        onClick={handleAddressChange}
-                                        className="text-indigo-600 hover:text-indigo-800"
-                                    >
-                                        Change Address
-                                    </button>
-                                </div>
-                                <p className="text-gray-700 mt-2">
-                                    {addresses.find(address => address.id === selectedAddressId)?.address || 'Select an address'}
-                                </p>
                             </div>
                             <button
                                 onClick={handleCheckout}
@@ -263,63 +242,46 @@ const ShoppingCart = () => {
                 </div>
             </div>
 
-            {/* Warning Modal */}
-            {showWarning && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="bg-white p-6 rounded-lg shadow">
-                        <h2 className="text-lg font-bold mb-4">Insufficient Balance</h2>
-                        <p>Your balance is insufficient to complete this purchase.</p>
-                        <button
-                            onClick={handleCloseWarning}
-                            className="mt-4 w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-400"
-                        >
-                            Close
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* Confirmation Modal */}
-            {showModal && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="bg-white p-6 rounded-lg shadow">
-                        <h2 className="text-lg font-bold mb-4">Confirm Order</h2>
-                        <div className="space-y-4">
-                            <div className="flex justify-between text-gray-700">
-                                <span>Subtotal</span>
-                                <span>${calculateSubtotal()}</span>
-                            </div>
-                            <div className="flex justify-between text-gray-700">
-                                <span>Shipping estimate</span>
-                                <span>${shippingEstimate.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-gray-700">
-                                <span>Tax estimate</span>
-                                <span>${taxEstimate.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-gray-900 font-bold">
-                                <span>Order total</span>
-                                <span>${total}</span>
-                            </div>
-                            <div className="mt-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-900 font-semibold">Delivery Address</span>
-                                    <p className="text-gray-700">
-                                        {addresses.find(address => address.id === selectedAddressId)?.address || 'Select an address'}
-                                    </p>
+            {/* Address Change Modal */}
+            {showAddressModal && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <h3 className="text-lg font-bold mb-4">Change Delivery Address</h3>
+                        <div className="mb-4">
+                            {addresses.map(addr => (
+                                <div key={addr.id} className="flex items-center mb-2">
+                                    <input
+                                        type="radio"
+                                        id={`addr-${addr.id}`}
+                                        name="address"
+                                        value={addr.id}
+                                        checked={selectedAddressId === addr.id}
+                                        onChange={() => handleSelectAddress(addr.id)}
+                                        className="mr-2"
+                                    />
+                                    <label htmlFor={`addr-${addr.id}`}>{addr.address}</label>
                                 </div>
-                            </div>
+                            ))}
                         </div>
-                        <div className="mt-6 flex justify-end space-x-4">
+                        <div className="mb-4">
+                            <input
+                                type="text"
+                                value={newAddress}
+                                onChange={(e) => setNewAddress(e.target.value)}
+                                placeholder="Enter new address"
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="flex justify-end">
                             <button
-                                onClick={handleConfirmOrder}
-                                className="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-500"
+                                onClick={handleAddAddress}
+                                className="bg-indigo-600 text-white px-4 py-2 rounded mr-2"
                             >
-                                Confirm
+                                Add New Address
                             </button>
                             <button
-                                onClick={handleCloseModal}
-                                className="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-200"
+                                onClick={handleCloseAddressModal}
+                                className="bg-gray-300 text-gray-800 px-4 py-2 rounded"
                             >
                                 Close
                             </button>
@@ -328,50 +290,50 @@ const ShoppingCart = () => {
                 </div>
             )}
 
-            {/* Address Selection Modal */}
-            {showAddressModal && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="bg-white p-6 rounded-lg shadow">
-                        <h2 className="text-lg font-bold mb-4">Select Delivery Address</h2>
-                        <div className="space-y-4">
-                            {addresses.map(address => (
-                                <div key={address.id} className="flex items-center space-x-2">
-                                    <input
-                                        type="radio"
-                                        id={`address-${address.id}`}
-                                        name="address"
-                                        value={address.id}
-                                        checked={selectedAddressId === address.id}
-                                        onChange={() => handleSelectAddress(address.id)}
-                                        className="form-radio"
-                                    />
-                                    <label htmlFor={`address-${address.id}`} className="text-gray-700">
-                                        {address.address}
-                                    </label>
-                                </div>
-                            ))}
-                            <div className="mt-4">
-                                <label htmlFor="new-address" className="block text-gray-700">Add New Address</label>
-                                <input
-                                    id="new-address"
-                                    type="text"
-                                    value={newAddress}
-                                    onChange={(e) => setNewAddress(e.target.value)}
-                                    className="border rounded-md p-2 w-full mt-2"
-                                    placeholder="House No, Road No, R/A, City"
-                                />
-                                <button
-                                    onClick={handleAddAddress}
-                                    className="w-full bg-indigo-600 text-white py-2 px-4 mt-2 rounded-lg hover:bg-indigo-500"
-                                >
-                                    Add Address
-                                </button>
-                            </div>
+            {/* Confirmation Modal */}
+            {showModal && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <h3 className="text-lg font-bold mb-4">Confirm Your Order</h3>
+                        <p className="mb-4">Enter your bank account secret key to proceed with the payment:</p>
+                        <div className="mb-4">
+                            <input
+                                type="password"
+                                value={secretKey}
+                                onChange={(e) => setSecretKey(e.target.value)}
+                                placeholder="Enter secret key"
+                                className="w-full p-2 border rounded"
+                            />
                         </div>
-                        <div className="mt-6 flex justify-end space-x-4">
+                        <div className="flex justify-end">
                             <button
-                                onClick={handleCloseAddressModal}
-                                className="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-200"
+                                onClick={handleConfirmOrder}
+                                className={`bg-indigo-600 text-white px-4 py-2 rounded mr-2 ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                disabled={isProcessing}
+                            >
+                                {isProcessing ? 'Processing...' : 'Confirm'}
+                            </button>
+                            <button
+                                onClick={handleCloseModal}
+                                className="bg-gray-300 text-gray-800 px-4 py-2 rounded"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Warning Modal */}
+            {showWarning && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <h3 className="text-lg font-bold mb-4">Insufficient Balance</h3>
+                        <p className="mb-4">You don't have enough balance to complete this purchase.</p>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={handleCloseWarning}
+                                className="bg-gray-300 text-gray-800 px-4 py-2 rounded"
                             >
                                 Close
                             </button>
@@ -384,4 +346,3 @@ const ShoppingCart = () => {
 };
 
 export default ShoppingCart;
-

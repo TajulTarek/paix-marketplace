@@ -47,8 +47,18 @@ function Login() {
                     email: SignUpData.email,
                     password: SignUpData.password,
                 });
+
+                // Assuming the response contains userId and isAdd
+                
+                const { _id, isAdd } = data.user;
+                
+                console.log(data.user)
+                // Save userId and isAdd to local storage
+                localStorage.setItem('userId', _id);
+                localStorage.setItem('isAdd', isAdd);
+                
                 toast.success('Login successful!');
-                routetohome();
+                setTimeout(() => routetohome(), 2000);
             } catch (error) {
                 toast.error("Login failed. Please check your credentials.");
                 console.log("Error during login:", error);

@@ -5,6 +5,8 @@ import ShoppingCart from './ShoppingCart';
 import Product from './Product';
 import Login from './Login';
 import Register from './Register';
+import MyAccount from './MyAccount';
+import MyOrders from './MyOrders';
   
 function App() {
   return (
@@ -13,9 +15,11 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} > </Route>
           <Route path="/" element={<Home />}> </Route>
-          <Route path="/product" element={<Product />}></Route>
+          <Route path="/product/:productId" element={<Product />} />
           <Route path="/cart" element={<ShoppingCart />}></Route>
           <Route path="/register" element={<Register />}></Route>
+          <Route path="/myaccount" element={<MyAccount />}></Route>
+          <Route path="/myorders" element={<MyOrders />}></Route>
         </Routes>
       </BrowserRouter>
     </>

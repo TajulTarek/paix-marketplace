@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Product = () => {
+    const { productId } = useParams(); // Get the product ID from the URL
     const [product, setProduct] = useState(null);
     const [selectedImage, setSelectedImage] = useState('');
     const [quantity, setQuantity] = useState(1);
@@ -12,15 +14,14 @@ const Product = () => {
     useEffect(() => {
         const fetchProductData = async () => {
             try {
-                const response = await fetch('http://localhost:8000/product');
+                const response = await fetch(`http://localhost:8000/product/${productId}`);
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.products && data.products.length > 0) {
-                        const productData = data.products[0]; // Assuming you want the first product
-                        setProduct(productData);
-                        setSelectedImage(productData.image); // Set the product image as the default selected image
+                    if (data.product) {
+                        setProduct(data.product);
+                        setSelectedImage(data.product.image); // Set the product image as the default selected image
                     } else {
-                        toast.error('No products found.');
+                        toast.error('Product not found.');
                     }
                 } else {
                     console.error('Failed to fetch product data:', response.statusText);
@@ -33,7 +34,7 @@ const Product = () => {
         };
 
         fetchProductData();
-    }, []);
+    }, [productId]);
 
     const handleImageChange = (newImageUrl) => {
         setSelectedImage(newImageUrl);
@@ -54,18 +55,19 @@ const Product = () => {
     const handleAddToCart = async () => {
         if (!product) return;
 
+        const userId = localStorage.getItem("userId"); // Replace with actual user ID retrieval logic
+
         const cartItem = {
-            name: product.name,
-            description: product.description,
+            user_id: userId,
+            product_id: product._id,
+            product_name: product.name,
             supplier_id: product.supplier_id,
-            supplier_name: product.supplier_name,
             price: product.price,
-            originalPrice: product.originalPrice,
-            image: selectedImage
+            quantity: quantity
         };
 
         try {
-            const response = await fetch('http://localhost:8000/product/add', {
+            const response = await fetch('http://localhost:8000/product/addToCart', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -73,17 +75,22 @@ const Product = () => {
                 body: JSON.stringify(cartItem),
             });
 
+            const data = await response.json();
+            console.log('Response data:', data); // Log the response data for inspection
+
             if (response.ok) {
-                const data = await response.json();
-                toast.success('Product added to cart successfully!');
-                console.log('Product added to cart:', data);
+                // Adjust this logic based on the actual response structure
+                if (data.success || data.message === 'Product added to cart successfully') {
+                    toast.success('Product added to cart successfully!');
+                } else {
+                    toast.error('Failed to add product to cart. Please try again.');
+                }
             } else {
-                console.error('Failed to add product to cart:', response.statusText);
-                toast.error('Failed to add product to cart.');
+                toast.error(`Failed to add product to cart: ${data.message || response.statusText}`);
             }
         } catch (error) {
             console.error('Error adding product to cart:', error);
-            toast.error('Error adding product to cart.');
+            toast.error('Error adding product to cart. Please check your network connection.');
         }
     };
 
