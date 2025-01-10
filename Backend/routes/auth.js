@@ -62,6 +62,44 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Add Address to User
+router.post('/:userId/address', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { address } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.address.push(address); 
+    await user.save();
+
+    res.status(201).json({ message: 'Address added successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Get All Addresses of User
+router.get('/:userId/addresses', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId).select('address'); 
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ addresses: user.address });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // Helper function to generate a unique account number
 function generateAccountNumber() {
   // Implement your logic to generate a unique 10-digit account number

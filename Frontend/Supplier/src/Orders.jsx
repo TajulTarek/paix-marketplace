@@ -56,7 +56,7 @@ const Orders = () => {
     return (
         <>
             <Navbar />
-            <div className="max-w-6xl mx-auto px-4 py-6 bg-gray-100">
+            <div className="max-w-6xl mx-auto px-4 py-6 bg-zinc-100">
                 <h1 className="text-3xl font-semibold text-gray-800 mb-6">Your Orders</h1>
 
                 <div className="flex justify-between items-center mb-6">

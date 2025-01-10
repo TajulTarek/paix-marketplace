@@ -127,61 +127,191 @@ router.post('/checkout', async (req, res) => {
         
         const htmlContent = `
           <!DOCTYPE html>
-          <html>
-            <head>
-              <title>PAIX Payment Slip</title>
-              <style>
-                body {
-                  font-family: sans-serif;
-                }
-                h1, h2, h3 {
-                  margin: 10px 0;
-                }
-                table {
-                  width: 100%;
-                  border-collapse: collapse;
-                }
-                table th, table td {
-                  border: 1px solid #ddd;
-                  padding: 5px;
-                }
-              </style>
-            </head>
-            <body>
-              <h1>PAIX Payment Slip</h1>
-              <h2>Date: ${new Date().toLocaleString()}</h2>
-              <h3>Customer Information:</h3>
-              <p>Name: ${user.name}</p>
-              <p>Address: ${address}</p>
-              <h3>Transaction Details:</h3>
-              <p>Transaction ID: ${transaction._id}</p>
-              <h3>Products:</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>P</th>
-                    <th>Product Name</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${transaction.products_list.map((item, index) => `
-                    <tr>
-                      <td>${index + 1}</td>
-                      <td>${item.product_name}</td>
-                      <td>${item.quantity}</td>
-                      <td>${item.price}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-              <h3>Credit Details:</h3>
-              <p>Product Price: ${transaction.product_credit}</p>
-              <p>Shipping Fee: ${transaction.shipping_credit}</p>
-              <p>Total Price: ${transaction.total_credit}</p>
-            </body>
-          </html>
+<html>
+
+<head>
+  <title>PAIX Payment Slip</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: sans-serif;
+    }
+
+    .invoice-header {
+      background-color: #F3F3F3;
+      padding: 40px 50px;
+      position: relative;
+    }
+
+    .invoice-header-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: #FF0901;
+      margin-bottom: 20px;
+    }
+
+    .invoice-header-title h1 {
+      margin: 0;
+    }
+
+    .invoice-header-details {
+      background: linear-gradient(to bottom, #FF0901, #FF7E03);
+      border-radius: 10px;
+      padding: 20px 30px;
+      position: absolute;
+      top: 50%;
+      right: 50px;
+      transform: translateY(-50%);
+      text-align: right;
+    }
+
+    .invoice-header-details h2 {
+      color: #F3F3F3;
+      margin-bottom: 4px;
+      font-size: 24px;
+    }
+
+    .invoice-header-details h3 {
+      color: #fbc6b0;
+      font-size: 18px;
+    }
+
+    /* Customer and Payment Details */
+    .invoice-details {
+      background-color: #FF7E03;
+      padding: 30px 50px;
+      margin: 40px 50px;
+      border-radius: 10px;
+      color: #fff;
+    }
+
+    .invoice-details h3 {
+      color: #fff;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+
+    .invoice-details h4 {
+      color: #f3f3f3;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .invoice-details .customer-info,
+    .invoice-details .transaction-info {
+      margin-bottom: 24px;
+    }
+
+    .invoice-details .customer-info h2 {
+      font-size: 22px;
+      margin-top: 8px;
+    }
+
+    /* Table Style */
+    .invoice-products-holder {
+      padding: 20px 50px;
+      margin-bottom: 50px;
+    }
+
+    table {
+      border: 1px solid #d7d6d6;
+      border-collapse: collapse;
+      width: 100%;
+      color: #333;
+    }
+
+    .table-bold-data {
+      font-weight: 600;
+    }
+
+    table th {
+      padding: 16px 24px;
+      background-color: #F3F3F3;
+      text-align: left;
+      border-bottom: 1px solid #d7d6d6;
+    }
+
+    table td {
+      padding: 16px 24px;
+      border-bottom: 1px solid #d7d6d6;
+    }
+
+    table tr:last-child {
+      color: #FF7E03;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="invoice-header">
+    <div class="invoice-header-title">
+      <h1>PAIX</h1>
+    </div>
+    <div class="invoice-header-details">
+      <h2>Invoice</h2>
+      <h3>Date: ${new Date().toLocaleString()}</h3>
+    </div>
+  </div>
+
+  <div class="invoice-details">
+    <div class="customer-info">
+      <h3>Customer</h3>
+      <h2>${user.name}</h2>
+      <h4>${user.email}</h4>
+      <h4>${address}</h4>
+    </div>
+    <div class="transaction-info">
+      <h3>Payment Details</h3>
+      <h4>Method: BankPAIX</h4>
+      <h4>Status: Paid</h4>
+      <h4>Transaction ID: ${transaction._id}</h4>
+    </div>
+  </div>
+
+  <div class="invoice-products-holder">
+    <table>
+      <tr>
+        <th>NO.</th>
+        <th>ITEM DESCRIPTION</th>
+        <th>PRICE</th>
+        <th>QUANTITY</th>
+        <th>AMOUNT</th>
+      </tr>
+      ${transaction.products_list.map((item, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${item.product_name}</td>
+          <td>${item.price}</td>
+          <td>${item.quantity}</td>
+          <td>${item.quantity*item.price}</td>
+        </tr>
+      `).join('')}
+      <tr>
+        <td colspan="3"></td>
+        <td class="table-bold-data">Sub Total</td>
+        <td>${transaction.product_credit}</td>
+      </tr>
+      <tr>
+        <td colspan="3"></td>
+        <td class="table-bold-data">Shipping Fee</td>
+        <td>${transaction.shipping_credit}</td>
+      </tr>
+      <tr>
+        <td colspan="3"></td>
+        <td class="table-bold-data">Grand Total</td>
+        <td class="table-bold-data">${transaction.total_credit}</td>
+      </tr>
+    </table>
+  </div>
+</body>
+
+</html>
+
         `;
   
         const pdfPath = path.join(__dirname, '..', 'pdfs', `${transaction._id}.pdf`);

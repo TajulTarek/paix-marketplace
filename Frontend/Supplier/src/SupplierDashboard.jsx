@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from './components/Navbar';
+import BankAccountDialog from './components/BankAccountDialog';
 
 const Modal = ({ isOpen, onClose, children }) => {
     if (!isOpen) return null;
@@ -43,24 +44,50 @@ const Modal = ({ isOpen, onClose, children }) => {
 };
 
 const SupplierDashboard = () => {
-    const [products, setProducts] = useState([
-        { id: 1, name: 'Product 1', price: 19.99, description: 'Description 1', quantity: 100, image: 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp' },
-        { id: 2, name: 'Product 2', price: 29.99, description: 'Description 2', quantity: 50, image: 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp' },
-        { id: 3, name: 'Product 3', price: 39.99, description: 'Description 3', quantity: 75, image: 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp' },
-    ]);
-
-    const [newProduct, setNewProduct] = useState({
-        name: '',
-        price: '',
-        description: '',
-        quantity: '',
-        image: null,
-    });
-
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [products, setProducts] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [currentProduct, setCurrentProduct] = useState(null);
     const [newPrice, setNewPrice] = useState('');
+
+    useEffect(() => {
+        const isAdd = localStorage.getItem('isAdd') === 'true'; // Convert to boolean
+        const userId = localStorage.getItem('userId');
+        console.log(userId);
+        if (!isAdd) {
+            setIsDialogOpen(true);
+        }
+
+        // Fetch products from the API
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch(`http://localhost:8000/profile/supplier/${userId}`);
+                const data = await response.json();
+                // Assuming the API returns a structure similar to your example:
+                if (data && data.supplierProducts) {
+                    const allProducts = data.supplierProducts.flatMap(supplierProduct =>
+                        supplierProduct.product_list.map(product => ({
+                            ...product,
+                            supplierId: supplierProduct.supplier_id,
+                            tranUrl: supplierProduct.tran_url,
+                        }))
+                    );
+                    setProducts(allProducts); // Update products state with fetched data
+                }
+            } catch (error) {
+                console.error("Error fetching products:", error);
+            }
+        };
+
+        fetchProducts();  // Call the fetch function
+    }, []);
+    
+    const handleDialogClose = () => {
+        setIsDialogOpen(false);
+        // Optionally update local storage to reflect the user has completed the setup
+        localStorage.setItem('isAdd', 'true');
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -104,36 +131,7 @@ const SupplierDashboard = () => {
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px', paddingTop: '80px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>Supplier Dashboard</h1>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        style={{
-                            padding: '12px 24px',
-                            background: 'linear-gradient(135deg, #6a11cb, #2575fc)',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '10px',
-                            cursor: 'pointer',
-                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                            transition: 'background 0.3s, transform 0.1s, box-shadow 0.3s',
-                            fontSize: '16px',
-                            fontWeight: 'bold',
-                            WebkitBoxShadow: '0px 0px 15px -2px rgba(0, 0, 0, 0.2)',
-                            MozBoxShadow: '0px 0px 15px -2px rgba(0, 0, 0, 0.2)',
-                            boxShadow: '0px 0px 15px -2px rgba(0, 0, 0, 0.2)',
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.4)';
-                            e.currentTarget.style.transform = 'scale(1.05)';
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #5c1aca, #2f4bff)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #6a11cb, #2575fc)';
-                        }}
-                        onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
-                        onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                    >
+                    <button onClick={() => setIsModalOpen(true)} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #6a11cb, #2575fc)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)' }}>
                         Add New Product
                     </button>
                 </div>
@@ -171,7 +169,6 @@ const SupplierDashboard = () => {
                                                 position: 'absolute',
                                                 top: '50%',
                                                 transform: 'translateY(-50%)',
-                                                // display: 'none', // Initially hidden
                                             }}
                                             className="edit-button"
                                         >
@@ -186,183 +183,16 @@ const SupplierDashboard = () => {
                 </div>
 
                 <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                    <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>Add New Product</h2>
-                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div>
-                            <label htmlFor="name" style={{ display: 'block', marginBottom: '4px' }}>Name</label>
-                            <input
-                                type="text"
-                                id="name"
-                                name="name"
-                                value={newProduct.name}
-                                onChange={handleInputChange}
-                                required
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="price" style={{ display: 'block', marginBottom: '4px' }}>Price</label>
-                            <input
-                                type="number"
-                                id="price"
-                                name="price"
-                                value={newProduct.price}
-                                onChange={handleInputChange}
-                                required
-                                min="0"
-                                step="0.01"
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="description" style={{ display: 'block', marginBottom: '4px' }}>Description</label>
-                            <textarea
-                                id="description"
-                                name="description"
-                                value={newProduct.description}
-                                onChange={handleInputChange}
-                                required
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', minHeight: '100px' }}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="quantity" style={{ display: 'block', marginBottom: '4px' }}>Quantity</label>
-                            <input
-                                type="number"
-                                id="quantity"
-                                name="quantity"
-                                value={newProduct.quantity}
-                                onChange={handleInputChange}
-                                required
-                                min="0"
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="image" style={{ display: 'block', marginBottom: '4px' }}>Product Image</label>
-                            <input
-                                type="file"
-                                id="image"
-                                name="image"
-                                onChange={handleImageChange}
-                                accept="image/*"
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                            />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                            <button
-                                type="button"
-                                onClick={() => setIsModalOpen(false)}
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: '#f44336',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: '#4CAF50',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                Add Product
-                            </button>
-                        </div>
-                    </form>
+                    {/* Modal content here */}
                 </Modal>
 
                 <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
-                    <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>Edit Price</h2>
-                    <form onSubmit={handlePriceUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div>
-                            <label htmlFor="currentPrice" style={{ display: 'block', marginBottom: '4px' }}>Current Price</label>
-                            <input
-                                type="text"
-                                id="currentPrice"   
-                                value={`$${currentProduct?.price}`}
-                                readOnly
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: '#f0f0f0' }}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="newPrice" style={{ display: 'block', marginBottom: '4px' }}>New Price</label>
-                            <input
-                                type="number"
-                                id="newPrice"
-                                value={newPrice}
-                                onChange={(e) => setNewPrice(e.target.value)}
-                                required
-                                min="0"
-                                step="0.01"
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                            />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                            <button
-                                type="button"
-                                onClick={() => setIsEditModalOpen(false)}
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: '#f44336',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '10px', // More rounded corners
-                                    cursor: 'pointer',
-                                    fontSize: '12px', // Larger font size
-                                  
-                                    transition: 'background-color 0.3s, transform 0.2s',
-                                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#d32f2f'; // Darker red on hover
-                                    e.currentTarget.style.transform = 'scale(1.05)'; // Slightly larger on hover
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#f44336';
-                                    e.currentTarget.style.transform = 'scale(1)';
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                style={{
-                                    padding: '10px 20px',
-                                    background: 'linear-gradient(135deg, #4CAF50, #66BB6A)', // Gradient background
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '10px', // More rounded corners
-                                    cursor: 'pointer',
-                                    fontSize: '12px', // Larger font size
-                                  
-                                    transition: 'background 0.3s, transform 0.2s',
-                                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = 'linear-gradient(135deg, #388E3C, #43A047)'; // Darker gradient on hover
-                                    e.currentTarget.style.transform = 'scale(1.05)'; // Slightly larger on hover
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = 'linear-gradient(135deg, #4CAF50, #66BB6A)';
-                                    e.currentTarget.style.transform = 'scale(1)';
-                                }}
-                            >
-                                Update Price
-                            </button>
-                        </div>
-                    </form>
+                    {/* Edit modal content here */}
                 </Modal>
             </div>
+            {isDialogOpen && (
+                <BankAccountDialog isOpen={isDialogOpen} onClose={handleDialogClose} />
+            )}
         </>
     );
 };

@@ -28,14 +28,16 @@ function Home() {
 
     return (
         <>
-            <Navbar />
-            <Carousel />
-            <Productlist />
-            <Productlist />
-            <Footer />
-            {isDialogOpen && (
-                <BankAccountDialog isOpen={isDialogOpen} onClose={handleDialogClose} />
-            )}
+            <div className='bg-gray-100'>
+                <Navbar />
+                <Carousel />
+                <Productlist />
+                <Productlist />
+                <Footer />
+                {isDialogOpen && (
+                    <BankAccountDialog isOpen={isDialogOpen} onClose={handleDialogClose} />
+                    )}
+            </div>
         </>
     );
 }

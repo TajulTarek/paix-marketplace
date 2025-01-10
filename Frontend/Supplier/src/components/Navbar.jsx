@@ -1,7 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; 
+import { toast } from 'react-toastify';
 
-const Navbar = ({ onAboutUsClick }) => {
-    
+const Navbar = () => {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const userId = localStorage.getItem("userId")
+
+    useEffect(() => {
+        // Check if userId exists in localStorage
+        const userId = localStorage.getItem('userId');
+        setIsLoggedIn(!!userId); // Convert to boolean
+    }, []);
+
+    const handleLogout = () => {
+
+        toast.success("Logout Successfully")
+        // Remove user-related data from localStorage
+        localStorage.removeItem('userId');
+        localStorage.removeItem('isAdd');
+        localStorage.removeItem('accountNo');
+
+
+        // Update state to reflect logout
+        setIsLoggedIn(false);
+    };
 
     const navItems = (
         <>
@@ -10,6 +31,30 @@ const Navbar = ({ onAboutUsClick }) => {
             </li>
             <li>
                 <a>Orders</a>
+            </li>
+            <li>
+                <a href="/myaccount">My Account</a>
+            </li>
+            <li>
+                {isLoggedIn ? (
+                    <a
+                        href="#"
+
+                        onClick={(e) => {
+                            e.preventDefault(); // Prevent navigation
+                            handleLogout(); // Call logout logic
+                        }}
+                    >
+                        Logout
+                    </a>
+                ) : (
+                    <a
+                        href="/login"
+
+                    >
+                        Login
+                    </a>
+                )}
             </li>
             
         </>
@@ -41,20 +86,14 @@ const Navbar = ({ onAboutUsClick }) => {
                                 {navItems}
                             </ul>
                         </div>
-                        <a href='/' className="text-2xl font-bold cursor-pointer">Paix</a>
+                        <a href="/" className="text-3xl font-extrabold text-gray-800 tracking-wide cursor-pointer flex items-center gap-2">
+                            <span className="bg-gradient-to-r from-blue-500 to-green-500 text-transparent bg-clip-text">
+                                Paix
+                            </span>
+                            <span className="text-sm font-medium text-gray-500">Shop</span>
+                        </a>
                     </div>
                     <div className='navbar-end space-x-3'>
-                        <div className="navbar-center hidden lg:flex">
-                            <ul className="menu menu-horizontal px-1">
-                                <li>
-                                    <a href='/'>Home</a>
-                                </li>
-                                <li>
-                                    <a href='/orders'>Orders</a>
-                                </li>
-                               
-                            </ul>
-                        </div>
                         <div className='hidden md:block'>
                             <label className="px-3 py-3 border rounded-xl flex items-center gap-2">
                                 <input type="text" className="grow outline-none" placeholder="Search" />
@@ -70,10 +109,43 @@ const Navbar = ({ onAboutUsClick }) => {
                                 </svg>
                             </label>
                         </div>
-                        
-                        <div className="">
-                            <a href='/' className="bg-black px-3 py-2 text-white cursor-pointer rounded-md hover:bg-slate-800">Login</a>
+                        <div className="navbar-center hidden lg:flex">
+                            <ul className="menu menu-horizontal px-1">
+                                <li>
+                                    <a href='/'>Home</a>
+                                </li>
+                                <li>
+                                    <a href='/orders'>Orders</a>
+                                </li>
+                                <li>
+                                    <a href="/myaccount">My Account</a>
+                                </li>
+                                <li>
+                                    {isLoggedIn ? (
+                                        <a
+                                            href="#"
+
+                                            onClick={(e) => {
+                                                e.preventDefault(); // Prevent navigation
+                                                handleLogout(); // Call logout logic
+                                            }}
+                                        >
+                                            Logout
+                                        </a>
+                                    ) : (
+                                        <a
+                                            href="/login"
+
+                                        >
+                                            Login
+                                        </a>
+                                    )}
+                                </li>
+                               
+                            </ul>
                         </div>
+                        
+                        
 
                         
                     </div>
